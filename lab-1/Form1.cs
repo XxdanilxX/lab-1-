@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace lab_1
@@ -5,10 +8,12 @@ namespace lab_1
     public partial class Form1 : Form
     {
         private int comparisonCount = 0;
+
         public Form1()
         {
             InitializeComponent();
         }
+
         // Метод для виконання двофазного простого злиття
         private void TwoPhaseMergeSort(string inputFilePath, string outputFilePath)
         {
@@ -24,8 +29,16 @@ namespace lab_1
             // Розділення файлу на дві частини
             SplitFile(inputFilePath, tempFile1, tempFile2);
 
+            // Сортування кожної частини
+            SortFile(tempFile1);
+            SortFile(tempFile2);
+
             // Об'єднання двох файлів у результаті злиття
             MergeFiles(tempFile1, tempFile2, outputFilePath);
+
+            // Видалення тимчасових файлів
+            File.Delete(tempFile1);
+            File.Delete(tempFile2);
 
             // Відображення кінцевого результату
             DisplayFile(inputFilePath, outputFilePath);
@@ -69,6 +82,14 @@ namespace lab_1
             }
         }
 
+        private void SortFile(string filePath)
+        {
+            // Сортування файлу
+            var lines = File.ReadAllLines(filePath);
+            var sortedLines = lines.OrderBy(line => int.Parse(line)).ToArray();
+            File.WriteAllLines(filePath, sortedLines);
+        }
+
         private void MergeFiles(string tempFile1, string tempFile2, string outputFilePath)
         {
             // Логіка злиття двох частин файлу
@@ -82,7 +103,7 @@ namespace lab_1
                 while (line1 != null && line2 != null)
                 {
                     comparisonCount++;
-                    if (string.Compare(line1, line2) < 0)
+                    if (int.Parse(line1) < int.Parse(line2))
                     {
                         writer.WriteLine(line1);
                         line1 = reader1.ReadLine();
@@ -126,9 +147,9 @@ namespace lab_1
             var sortedLines = File.ReadAllLines(outputFilePath);
 
             // Відображаємо дані у DataGridView
-            for (int i = 0; i < initialLines.Length; i++)
+            for (int i = 0; i < Math.Max(initialLines.Length, sortedLines.Length); i++)
             {
-                string initial = initialLines[i];
+                string initial = (i < initialLines.Length) ? initialLines[i] : string.Empty;
                 string sorted = (i < sortedLines.Length) ? sortedLines[i] : string.Empty;
 
                 // Додаємо рядок з початковим та відсортованим значенням
@@ -138,15 +159,11 @@ namespace lab_1
             MessageBox.Show($"Кількість порівнянь: {comparisonCount}");
         }
 
-
         private void btnSort_Click(object sender, EventArgs e)
         {
             string inputFilePath = "C:\\Users\\Lenovo\\Desktop\\input.txt";  // Шлях до вхідного файлу
             string outputFilePath = "C:\\Users\\Lenovo\\Desktop\\output.txt";  // Шлях до вихідного файлу
             TwoPhaseMergeSort(inputFilePath, outputFilePath);
-            DisplayFile(inputFilePath, outputFilePath);  // Відображаємо і початкові, і відсортовані дані
         }
-
-
     }
 }
